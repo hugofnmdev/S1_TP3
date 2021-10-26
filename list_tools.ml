@@ -9,15 +9,16 @@ let rec length = function
 
 (* OUTIL 2 - nth *)
 
-let nth n list =
-  if n < 0 then
-    invalid_arg "The index must be a natural !"
+let nth rank list =
+  if rank < 0 then
+    invalid_arg "The argument rank must be a natural !"
   else
-let rec recnth = function
-  |(_,[]) -> failwith "The list is too short for this argument !"
-  |(1,e::l) -> e
-  |(i,e::l) -> recnth ((n-1),l)
-in recnth (n,list);;
+    let rec nth_rec = function
+      | (_, []) -> failwith "This list is too short for this argument !"
+      | (0, e::l) -> e
+      | (i, e::l) -> nth_rec (i-1, l)
+    in
+    nth_rec (rank, list) ;;
 
 (* OUTIL 3 - is_pos *)
 
@@ -31,20 +32,18 @@ let rec is_pos = function
 
 let rec get_max = function
   |e::[] -> e
-  |e::l -> let maxaux = max l in if e > get_max then e else max
-  |[] -> invalid_arg "The given list is empty"
-    in match list with
-       |[] -> invalid_arg "The given list cannot be empty"
-       |e::l -> get_max l;;
+  |e::l -> let max = get_max l in
+   if e > max then e else max
+  |[] -> failwith "The list cannot be empty" ;;
 
 (* 1.2 - Construire - Modifier *)
 (* OUTIL 5 - init_list *)
 
-let rec init n x = function
-  |n when n < 0 -> invalid_arg "The given n must be a natural"  
+let rec init_list n x = 
+  match n with
+  |a when n<0 -> invalid_arg "The argument n must be a natural"
   |0 -> []
-  |_ -> x::l && init (n-1) x
-in init n x [];;
+  |_ -> x :: init_list(n-1) x ;;
 
 (* OUTIL 6 - append *)
 
@@ -54,25 +53,66 @@ let rec append l1 l2 = match l1 with
 
 (* OUTIL 7 - put_list *)
 
-let put_list x i list =
-  if i <= 0 then
-    invalid_arg "The given position must be a natural"
-  else if [] = list then failwith "The given list cannot be empty"
-  else let rec putlistrec = function
-         |1 -> x::list
-         |_ -> e::putlistrec x (i-1) list
-       in putlistrec x i list;;
+let rec add_list x = function
+        | [] -> [x]
+        | e::l when x<e -> x::e::l
+        | e::l when x>e -> e::(add_list x l)
+        | _ -> failwith "";;
 
 (* 1.3 - 'a list list *)
 (* OUTIL 8 - init_board *)
 
-let init_board (l,c) val =  ;;
+let rec init_board (l,c) v =
+  if l<0 && c<0 then
+    invalid_arg "The arguments l*v must be naturals !"
+  else
+   match (l,c) with 
+    |(0,_)|(_,0) -> [] 
+    |(1,c) -> init_list c v ::[]
+    |(_,_) -> init_list c v :: init_board (l-1,c) v ;;
 
 (* OUTIL 9 - is_board *)
 
-let rec is_board board =
-  let (e::l) = board function
+let rec is_board list = match list with
   |[] -> true
-         |;;
+  |e::[] -> true
+  |e::e1::l -> length e = length e1 && is_board (e1::l) ;; (* Length codé en haut du document *)
 
 (* OUTIL 10 - print_board *)
+
+(* OUTIL 11 - get_cell *)
+
+let get_element e l = 
+  let rec aux n = function
+    |[] -> failwith "out of bounds : not inside the list"
+    |h::t -> 
+      if n = e then h 
+      else aux (n+1) t
+  in aux 1 l;;
+
+let get_cell (x,y) board = 
+ let rec aux n = function
+    |[] -> failwith "Out of bound : not on the board"
+    |h::t -> 
+      if n = x then get_element y h
+      else aux (n+1) t
+  in
+  aux 1 board;;
+
+(* OUTIL 12 - put_cell *)
+
+let replace_element value element l = 
+  let rec aux n = function
+    |[] -> failwith "Out of bounds : not inside the list"
+    |h::t -> 
+      if n = element then value::t
+      else h::aux(n+1) t
+  in aux 1 l;;
+
+let put_cell value (x,y) board =
+  let rec aux n = function
+    |[] -> failwith "Out of bounds : not on the board"
+    |e::l -> 
+      if n = x then (replace_element value y e)::l
+      else e::aux(n+1) l
+  in aux 1 board;;
